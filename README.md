@@ -1,5 +1,5 @@
 # top67-solution-for-Jigsaw-Unintended-Bias-in-Toxicity-Classification
-kaggle-Jigsaw银牌记录
+kaggle-Jigsaw银牌记录：记录数据清洗、模型融合、参数设置等竞赛
 ## 数据清洗：
 ##### 统一用户输入的多种不规范字符（以免bert从语料库中查找到不同的id）
 ```python
@@ -120,3 +120,23 @@ replace_dict = {"'i'm": "i am", "'you're": "you are", "ain't": "is not", "aren't
     replace_dict = dict(replace_dict, **longword_dict, **spell_dict)
     df["comment_text"] = df.comment_text.map(lambda x: word_replace(x, replace_dict))
 ```
+
+## token_fit 
+##### 模型评估标准与样本均衡
+如何对每个样本加权，使得验证集上的loss下降  
+Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." ICML (2017).
+样本均衡方法由多种，根据竞赛给出的特定evaluation，分配如下的初始loss weight
+由于推特评论总体来说毒评论较少，所以样本是不均衡的，比赛不再采用准确率进行评估，而采用[https://arxiv.org/abs/1903.04561](https://arxiv.org/abs/1903.04561)来减少不必要的bias
+```python
+weights += (train[identity_columns].fillna(0).values >= 0.5).sum(axis=1).astype(bool).astype(np.int) / 4
+    # Background Positive, Subgroup Negative
+    weights += (((train['target'].values >= 0.5).astype(bool).astype(np.int) +
+                 (train[identity_columns].fillna(0).values < 0.5).sum(axis=1).astype(bool).astype(np.int)) > 1).astype(
+        bool).astype(np.int) / 4
+    # Background Negative, Subgroup Positive
+    weights += (((train['target'].values < 0.5).astype(bool).astype(np.int) +
+                 (train[identity_columns].fillna(0).values >= 0.5).sum(axis=1).astype(bool).astype(np.int)) > 1).astype(
+        bool).astype(np.int) / 4
+    loss_weight = 1.0 / weights.mean()
+```
+
