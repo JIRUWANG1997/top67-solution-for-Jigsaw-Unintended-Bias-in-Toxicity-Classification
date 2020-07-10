@@ -121,11 +121,12 @@ replace_dict = {"'i'm": "i am", "'you're": "you are", "ain't": "is not", "aren't
     df["comment_text"] = df.comment_text.map(lambda x: word_replace(x, replace_dict))
 ```
 
-## 文本预处理
+## 文本预处理：样本均衡
 ##### 模型评估标准与样本均衡
-如何对每个样本加权，使得验证集上的loss下降?
+样本不均衡，或类别不均衡，一般需要class_weight$$\times$$sample_weight（见sklearn文档）。由于和模型输出结果的class是一个得分，且后续还需处理，所以此处只考虑sample_weight。
+如何对每个样本加权，使得验证集上的loss下降，减少不必要的untentined bias?
 样本均衡方法由多种，根据竞赛给出的特定evaluation，分配如下的初始loss weight:
-由于推特评论总体来说毒评论较少，所以样本是不均衡的，比赛不再采用准确率进行评估，而采用[https://arxiv.org/abs/1903.04561](https://arxiv.org/abs/1903.04561)来减少不必要的bias
+比赛使用[https://arxiv.org/abs/1903.04561](https://arxiv.org/abs/1903.04561)来减少不必要的bias
 ```python
 weights += (train[identity_columns].fillna(0).values >= 0.5).sum(axis=1).astype(bool).astype(np.int) / 4
     # Background Positive, Subgroup Negative
