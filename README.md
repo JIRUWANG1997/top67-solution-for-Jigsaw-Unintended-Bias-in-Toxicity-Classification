@@ -139,4 +139,11 @@ weights += (train[identity_columns].fillna(0).values >= 0.5).sum(axis=1).astype(
         bool).astype(np.int) / 4
     loss_weight = 1.0 / weights.mean()
 ```
+## 训练：lstm+bert
+调整不同epoh的权重
+使用2个lstm叠加
+使用两个bert模型
+模型融合
+
+
 
